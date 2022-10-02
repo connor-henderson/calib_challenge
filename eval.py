@@ -20,7 +20,7 @@ for i in range(0,5):
   gt = np.loadtxt(GT_DIR + str(i) + '.txt')
   zero_mses.append(get_mse(gt, np.zeros_like(gt)))
 
-  test = np.loadtxt(TEST_DIR + str(i) + '.txt')
+  test = np.loadtxt(TEST_DIR + str(i + 5) + '.txt')
   mses.append(get_mse(gt, test))
 
 percent_err_vs_all_zeros = 100*np.mean(mses)/np.mean(zero_mses)
