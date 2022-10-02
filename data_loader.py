@@ -7,7 +7,8 @@ def get_ground_truth_labels(i):
 
 def get_video_frames(i):    
     frames = []
-    path = f'labeled/{i}.hevc'
+    folder = 'labeled' if i < 5 else 'unlabeled'
+    path = f'{folder}/{i}.hevc'
     cap = cv2.VideoCapture(path)
     ret = True
     while ret:
@@ -16,12 +17,23 @@ def get_video_frames(i):
             frames.append(img)
     return np.stack(frames, axis=0) # dimensions (T, H, W, C)
 
-def get_training_data():
+def get_and_save_training_data():
     X = []
     y = []
     for i in range(5):
         X.extend(get_video_frames(i))
         y.extend(get_ground_truth_labels(i))
-    return np.array(list(zip(X, y)), dtype=object)
+    training_data = np.array(list(zip(X, y)), dtype=object)
+    np.save('data/training.npy', training_data)
 
-training_data = get_training_data()
+def get_and_save_test_data():
+    X = []
+    for i in range(5, 10):
+        X.extend(get_video_frames(i))
+    test_data = np.array(X)
+    np.save('data/test.npy', test_data)
+    
+
+get_and_save_training_data()
+get_and_save_test_data()
+
