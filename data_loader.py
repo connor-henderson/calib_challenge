@@ -3,9 +3,9 @@ import cv2
 
 
 def get_ground_truth_labels(i):
-    return np.loadtxt(f'labeled/{i}.txt')
+    return np.loadtxt(f'labeled/{i}.txt', ndmin=2)
 
-def get_video_frames(i):    
+def get_video_frames(i):
     frames = []
     folder = 'labeled' if i < 5 else 'unlabeled'
     path = f'{folder}/{i}.hevc'
