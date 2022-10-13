@@ -8,8 +8,9 @@ from process import process_image
 def run_video_player():
     left_prev_lanes = []
     right_prev_lanes = []
+    prev_canny_imgs = []
     
-    cap = cv2.VideoCapture('unlabeled/9.hevc')
+    cap = cv2.VideoCapture('labeled/1.hevc')
     while cap.isOpened():
         ret, frame = cap.read()
         if ret:

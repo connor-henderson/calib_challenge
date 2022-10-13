@@ -77,7 +77,7 @@ def filter_points(pts, lane, img):
         func = left_lane_min_max_y if lane == 'left' else right_lane_min_max_y
         if func(x, y):
             new_pts.append((x, y))
-            # cv2.circle(img, (x, y), 5, (0, 0, 255), -1)
+            cv2.circle(img, (x, y), 5, (0, 0, 255), -1)
     return new_pts, img
 
 def lines_to_filtered_pts(image, hough_lines):
@@ -164,10 +164,11 @@ def draw_ans_for_debug(img, left_lane, right_lane):
 def lane_with_mom_calc(lane, prev_lanes):
     if lane is None: return lane
     prev_lanes.append(lane)
-    if len(prev_lanes) > 40:
+    if len(prev_lanes) < 50:
         return lane
-    momentum = 0.01
-    prev_lane_avg = np.mean(np.array(prev_lanes[-50:]), axis=0)
+    
+    momentum = 0.05
+    prev_lane_avg = np.mean(np.array(prev_lanes), axis=0)
     slope_with_momentum = momentum * lane[0] + (1 - momentum) * prev_lane_avg[0]
     intercept_with_momentum = lane[1] * momentum + prev_lane_avg[1] * (1 - momentum)
     return slope_with_momentum, intercept_with_momentum
@@ -186,10 +187,13 @@ def get_intersection_with_standard_lanes(left_lane, right_lane):
     right_line = right_lane if right_lane is not None else standard_right_lane
     return get_intersection(left_line, right_line)
 
-def process_image(image, prev_left_lanes, prev_right_lanes):
+def process_image(image, prev_left_lanes, prev_right_lanes, prev_canny_imgs=None):
     copy_img = np.copy(image)
     gray_img = cv2.cvtColor(copy_img, cv2.COLOR_BGR2GRAY)
-    canny = cv2.Canny(copy_img, 0, 50)
+    canny = cv2.Canny(copy_img, 50, 100)
+    if prev_canny_imgs is not None:
+        canny = combine_with_previous_second_canny(canny, prev_canny_imgs)
+
     masked_edges = get_roi_from_img(canny)
     hough_lines = get_hough_lines_p(masked_edges)
     # hough_img = draw_lines(np.copy(image), hough_lines)
@@ -205,7 +209,7 @@ def process_image(image, prev_left_lanes, prev_right_lanes):
     # append the calc'ed lanes to the prev lanes if they exist and calc the momentum
     left_lane_with_mom = lane_with_mom_calc(left_lane, prev_left_lanes)
     right_lane_with_mom = lane_with_mom_calc(right_lane, prev_right_lanes)
-    new_img = draw_ans_for_debug(test_img, left_lane_with_mom, right_lane_with_mom)
+    new_img = draw_ans_for_debug(image, left_lane_with_mom, right_lane_with_mom)
     
     # draw_ans_for_debug(np.copy(image), left_lane, right_lane)
     vp = get_intersection_with_standard_lanes(left_lane_with_mom, right_lane_with_mom)
