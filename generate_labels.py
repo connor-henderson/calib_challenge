@@ -3,6 +3,7 @@ import numpy as np
 from helpers.lines import lines_to_filtered_pts, get_intersection
 from helpers.lanes import pts_to_lane, lane_with_mom_calc
 from helpers.images import get_roi_from_img, get_hough_lines_p, draw_ans_for_debug
+from openpilot.transformations import get_calib_from_vp
 
 def image_to_vp(image, prev_left_lanes, prev_right_lanes, debug=False):
     # process the image from color -> grayscale -> canny -> masked by ROI -> probabilistic hough lines
@@ -29,3 +30,15 @@ def image_to_vp(image, prev_left_lanes, prev_right_lanes, debug=False):
         debug_img = draw_ans_for_debug(np.copy(image), left_lane_with_mom, right_lane_with_mom, vp)
         return vp, debug_img
     return vp
+
+def generate_and_write_labels(filename, frames):
+  prev_left_lanes = []
+  prev_right_lanes = []
+
+  with open(filename, 'w') as f:
+      for frame in frames:
+          vp = image_to_vp(frame, prev_left_lanes, prev_right_lanes)
+          _roll_calib, pitch_calib, yaw_calib = get_calib_from_vp(vp)
+          
+          f.write(f'{pitch_calib} {yaw_calib}\n')
+      f.close()
