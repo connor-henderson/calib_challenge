@@ -2,7 +2,10 @@ import numpy as np
 import sys
 
 
-TEST_DIR = 'test/'
+if len(sys.argv) > 1:
+  TEST_DIR = sys.argv[1]
+else:
+  raise RuntimeError('No test directory provided')
 GT_DIR = 'labeled/'
 
 def get_mse(gt, test):
