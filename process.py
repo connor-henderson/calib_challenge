@@ -34,8 +34,8 @@ def get_roi_from_img(img):
 def get_hough_lines_p(img, rho=2, theta=31*np.pi/180, threshold=10, min_line_length=5, max_line_gap=20):
     return cv2.HoughLinesP(img, rho, theta, threshold, np.array([]), min_line_length, max_line_gap)
 
-min_lane_slope = 0.5
-max_lane_slope = 1.5
+MIN_LANE_SLOPE = 0.5
+MAX_LANE_SLOPE = 1.5
 def filter_lines(copy_original_img, hough_lines):
     left_filtered_lines = []
     right_filtered_lines = []
@@ -48,12 +48,12 @@ def filter_lines(copy_original_img, hough_lines):
         left_intercept_prop = intercept > 800 and intercept < 1300
         right_intercept_prop = intercept > -50 and intercept < 300
         
-        left_slope_prop = slope < -min_lane_slope and slope > -max_lane_slope
-        right_slope_prop = slope > min_lane_slope and slope < max_lane_slope
+        left_slope_prop = slope < -MIN_LANE_SLOPE and slope > -MAX_LANE_SLOPE
+        right_slope_prop = slope > MIN_LANE_SLOPE and slope < MAX_LANE_SLOPE
         
         if left_slope_prop and left_slope_prop:
             left_filtered_lines.append(line)
-        elif right_slope_prop and right_intercept_prop: #slope > min_lane_slope and slope < max_lane_slope
+        elif right_slope_prop and right_intercept_prop: #slope > MIN_LANE_SLOPE and slope < MAX_LANE_SLOPE
             right_filtered_lines.append(line)
     return left_filtered_lines, right_filtered_lines
 
@@ -94,14 +94,14 @@ def lines_to_filtered_pts(image, hough_lines):
     return left_filtered_pts, right_filtered_pts, left_pts_img, right_pts_image
 
 # NEW LANE FILTERING METHOD
-standard_left_lane = (-0.71, 840) # (slope, intercept)
-standard_right_lane = (0.71, 0) # (slope, intercept)
+STANDARD_LEFT_LANE = (-0.71, 840) # (slope, intercept)
+STANDARD_RIGHT_LANE = (0.71, 0) # (slope, intercept)
 
 def matches_left_lane_props(slope):
-    return slope < -min_lane_slope and slope > -max_lane_slope
+    return slope < -MIN_LANE_SLOPE and slope > -MAX_LANE_SLOPE
 
 def matches_right_lane_props(slope):
-    return slope > min_lane_slope and slope < max_lane_slope
+    return slope > MIN_LANE_SLOPE and slope < MAX_LANE_SLOPE
 
 def get_pts_close_to_adj_line(pts, slope, intercept, img):
     new_pts = []
@@ -115,7 +115,7 @@ def pts_to_lane(pts, side, img):
     if len(pts) < 3: 
         return None
     
-    slope, intercept = standard_left_lane if side == 'left' else standard_right_lane
+    slope, intercept = STANDARD_LEFT_LANE if side == 'left' else STANDARD_RIGHT_LANE
     pts_close_to_line, new_img = get_pts_close_to_adj_line(pts, slope, intercept, img)
     
     x = [pt[0] for pt in pts_close_to_line]
@@ -150,7 +150,7 @@ def draw_ans_for_debug(img, left_lane, right_lane):
         end_point = (int((0 - intercept)/slope), 0)
         cv2.line(copy_img, start_point, end_point, (0, 255, 0), 10)
     else:
-        slope, intercept = standard_left_lane
+        slope, intercept = STANDARD_LEFT_LANE
         start_point = (int((copy_img.shape[0] - intercept)/slope), copy_img.shape[0])
         end_point = (int((0 - intercept)/slope), 0)
         cv2.line(copy_img, start_point, end_point, (0, 0, 255), 10)
@@ -160,7 +160,7 @@ def draw_ans_for_debug(img, left_lane, right_lane):
         end_point = (int((0 - intercept)/slope), 0)
         cv2.line(copy_img, start_point, end_point, (0, 255, 0), 10)
     else:
-        slope, intercept = standard_right_lane
+        slope, intercept = STANDARD_RIGHT_LANE
         start_point = (int((copy_img.shape[0] - intercept)/slope), copy_img.shape[0])
         end_point = (int((0 - intercept)/slope), 0)
         cv2.line(copy_img, start_point, end_point, (0, 0, 255), 10)
@@ -171,10 +171,10 @@ def lane_with_mom_calc(lane, prev_lanes, standard_lane):
     prev_lanes.append(lane)
     
     scaling_factor = len(prev_lanes)/(len(prev_lanes) + 5)
-    momentum = 0.95 * scaling_factor
+    MOMENTUM = 0.95 * scaling_factor
     prev_lane_avg = np.mean(np.array(prev_lanes), axis=0)
-    slope_with_momentum = prev_lane_avg[0] * momentum + lane[0] * (1 - momentum)
-    intercept_with_momentum = prev_lane_avg[1] * momentum + lane[1] * (1 - momentum)
+    slope_with_momentum = prev_lane_avg[0] * MOMENTUM + lane[0] * (1 - MOMENTUM)
+    intercept_with_momentum = prev_lane_avg[1] * MOMENTUM + lane[1] * (1 - MOMENTUM)
     return slope_with_momentum, intercept_with_momentum
 
 def get_intersection(line1, line2):
@@ -187,8 +187,8 @@ def get_intersection(line1, line2):
     return np.array([abs(xi), abs(yi)])
 
 def get_intersection_with_standard_lanes(left_lane, right_lane):
-    left_line = left_lane if left_lane is not None else standard_left_lane
-    right_line = right_lane if right_lane is not None else standard_right_lane
+    left_line = left_lane if left_lane is not None else STANDARD_LEFT_LANE
+    right_line = right_lane if right_lane is not None else STANDARD_RIGHT_LANE
     return get_intersection(left_line, right_line)
 
 def process_image(image, prev_left_lanes, prev_right_lanes):
@@ -206,9 +206,9 @@ def process_image(image, prev_left_lanes, prev_right_lanes):
     left_lane = pts_to_lane(left_pts, 'left', test_img)
     right_lane = pts_to_lane(right_pts, 'right', test_img)
 
-    # append the calc'ed lanes to the prev lanes if they exist and calc the momentum
-    left_lane_with_mom = lane_with_mom_calc(left_lane, prev_left_lanes, standard_left_lane)
-    right_lane_with_mom = lane_with_mom_calc(right_lane, prev_right_lanes, standard_right_lane)
+    # append the calc'ed lanes to the prev lanes if they exist and calc the MOMENTUM
+    left_lane_with_mom = lane_with_mom_calc(left_lane, prev_left_lanes, STANDARD_LEFT_LANE)
+    right_lane_with_mom = lane_with_mom_calc(right_lane, prev_right_lanes, STANDARD_RIGHT_LANE)
     
     test_img = draw_ans_for_debug(np.copy(image), left_lane_with_mom, right_lane_with_mom)
     vp = get_intersection_with_standard_lanes(left_lane_with_mom, right_lane_with_mom)
