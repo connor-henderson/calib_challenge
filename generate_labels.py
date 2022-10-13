@@ -1,9 +1,18 @@
 import cv2
 import numpy as np
-from helpers.lines import lines_to_filtered_pts, get_intersection
-from helpers.lanes import pts_to_lane, lane_with_mom_calc
-from helpers.images import get_roi_from_img, get_hough_lines_p, draw_ans_for_debug
+import importlib
 from openpilot.transformations import get_calib_from_vp
+from helpers import lines, lanes, images
+importlib.reload(lines)
+importlib.reload(lanes)
+importlib.reload(images)
+lines_to_filtered_pts = lines.lines_to_filtered_pts
+get_intersection = lines.get_intersection
+pts_to_lane = lanes.pts_to_lane
+lane_with_mom_calc = lanes.lane_with_mom_calc
+get_roi_from_img = images.get_roi_from_img
+get_hough_lines_p = images.get_hough_lines_p
+draw_ans_for_debug = images.draw_ans_for_debug
 
 def image_to_vp(image, prev_left_lanes, prev_right_lanes, debug=False):
     # process the image from color -> grayscale -> canny -> masked by ROI -> probabilistic hough lines
