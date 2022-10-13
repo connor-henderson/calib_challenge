@@ -10,7 +10,7 @@ def run_video_player():
     right_prev_lanes = []
     prev_canny_imgs = []
     
-    cap = cv2.VideoCapture('labeled/1.hevc')
+    cap = cv2.VideoCapture('labeled/3.hevc')
     while cap.isOpened():
         ret, frame = cap.read()
         if ret:

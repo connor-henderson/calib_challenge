@@ -17,12 +17,17 @@ def get_roi_from_img(img):
     y, x = img.shape
     y_offset = -10
     x_offset = 300
-    roi_vertices = np.array([[(50, y - 150),
-                              (x / 2 - x_offset, y / 1.8 + y_offset),
-                              (x / 2 + x_offset, y / 1.8 + y_offset),
-                              (x - 50, y - 150)]],
+    # roi_vertices = np.array([[(50, y - 150),
+    #                           (x / 2 - x_offset, y / 1.8 + y_offset),
+    #                           (x / 2 + x_offset, y / 1.8 + y_offset),
+    #                           (x - 50, y - 150)]],
+    #                           dtype=np.int32)
+    roi_vertices_2 = np.array([[(50, y - 200),
+                              (x / 2 - x_offset, y / 1.8 + y_offset - 50),
+                              (x / 2 + x_offset, y / 1.8 + y_offset - 50),
+                              (x - 50, y - 200)]],
                               dtype=np.int32)
-    cv2.fillPoly(mask, roi_vertices, ignore_mask_color)
+    cv2.fillPoly(mask, roi_vertices_2, ignore_mask_color)
     masked_edges = cv2.bitwise_and(img, img, mask=mask)
     return masked_edges
 
@@ -161,16 +166,15 @@ def draw_ans_for_debug(img, left_lane, right_lane):
         cv2.line(copy_img, start_point, end_point, (0, 0, 255), 10)
     return copy_img
     
-def lane_with_mom_calc(lane, prev_lanes):
-    if lane is None: return lane
+def lane_with_mom_calc(lane, prev_lanes, standard_lane):
+    lane = lane if lane is not None else standard_lane
     prev_lanes.append(lane)
-    if len(prev_lanes) < 50:
-        return lane
     
-    momentum = 0.05
+    scaling_factor = len(prev_lanes)/(len(prev_lanes) + 5)
+    momentum = 0.95 * scaling_factor
     prev_lane_avg = np.mean(np.array(prev_lanes), axis=0)
-    slope_with_momentum = momentum * lane[0] + (1 - momentum) * prev_lane_avg[0]
-    intercept_with_momentum = lane[1] * momentum + prev_lane_avg[1] * (1 - momentum)
+    slope_with_momentum = prev_lane_avg[0] * momentum + lane[0] * (1 - momentum)
+    intercept_with_momentum = prev_lane_avg[1] * momentum + lane[1] * (1 - momentum)
     return slope_with_momentum, intercept_with_momentum
 
 def get_intersection(line1, line2):
@@ -187,16 +191,12 @@ def get_intersection_with_standard_lanes(left_lane, right_lane):
     right_line = right_lane if right_lane is not None else standard_right_lane
     return get_intersection(left_line, right_line)
 
-def process_image(image, prev_left_lanes, prev_right_lanes, prev_canny_imgs=None):
+def process_image(image, prev_left_lanes, prev_right_lanes):
     copy_img = np.copy(image)
     gray_img = cv2.cvtColor(copy_img, cv2.COLOR_BGR2GRAY)
     canny = cv2.Canny(copy_img, 50, 100)
-    if prev_canny_imgs is not None:
-        canny = combine_with_previous_second_canny(canny, prev_canny_imgs)
-
     masked_edges = get_roi_from_img(canny)
     hough_lines = get_hough_lines_p(masked_edges)
-    # hough_img = draw_lines(np.copy(image), hough_lines)
     
     # take the hough lines, give me a set of acceptable points
     left_pts, right_pts, left_pts_img, right_pts_image = lines_to_filtered_pts(copy_img, hough_lines)
@@ -207,11 +207,11 @@ def process_image(image, prev_left_lanes, prev_right_lanes, prev_canny_imgs=None
     right_lane = pts_to_lane(right_pts, 'right', test_img)
 
     # append the calc'ed lanes to the prev lanes if they exist and calc the momentum
-    left_lane_with_mom = lane_with_mom_calc(left_lane, prev_left_lanes)
-    right_lane_with_mom = lane_with_mom_calc(right_lane, prev_right_lanes)
-    new_img = draw_ans_for_debug(image, left_lane_with_mom, right_lane_with_mom)
+    left_lane_with_mom = lane_with_mom_calc(left_lane, prev_left_lanes, standard_left_lane)
+    right_lane_with_mom = lane_with_mom_calc(right_lane, prev_right_lanes, standard_right_lane)
     
-    # draw_ans_for_debug(np.copy(image), left_lane, right_lane)
+    test_img = draw_ans_for_debug(np.copy(image), left_lane_with_mom, right_lane_with_mom)
     vp = get_intersection_with_standard_lanes(left_lane_with_mom, right_lane_with_mom)
     
-    return vp, new_img
+    return vp, test_img
+
