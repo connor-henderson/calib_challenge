@@ -1,5 +1,6 @@
 import numpy as np
 import cv2
+import matplotlib.pyplot as plt
 
 def get_roi_from_img(img):
     mask = np.zeros_like(img)
