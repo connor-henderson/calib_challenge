@@ -1,6 +1,0 @@
-STANDARD_LEFT_LANE = (-0.717, 855) # (slope, intercept)
-STANDARD_RIGHT_LANE = (0.717, 15) # (slope, intercept)
-MIN_LANE_SLOPE = 0.5
-MAX_LANE_SLOPE = 1.5
-LINE_ADJ_FACTOR = 0.2
-MOMENTUM = 0.95

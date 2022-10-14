@@ -16,19 +16,12 @@ def filter_lines_to_points(hough_lines, min_lane_slope, max_lane_slope):
         left_slope_prop = slope < -min_lane_slope and slope > -max_lane_slope
         right_slope_prop = slope > min_lane_slope and slope < max_lane_slope
         
-        
         if left_slope_prop and left_slope_prop:
             left_pts.append((x1, y1))
             left_pts.append((x2, y2))
         elif right_slope_prop and right_intercept_prop:
             right_pts.append((x1, y1))
             right_pts.append((x2, y2))
-        # if has_lane_slope('left', slope, min_lane_slope, max_lane_slope) and left_intercept_prop:
-        #     left_pts.append((x1, y1))
-        #     left_pts.append((x2, y2))
-        # elif has_lane_slope('right', slope, min_lane_slope, max_lane_slope)  and right_intercept_prop:
-        #     right_pts.append((x1, y1))
-        #     right_pts.append((x2, y2))
     return left_pts, right_pts
 
 
@@ -51,7 +44,6 @@ def filter_points(pts, lane):
     return new_pts
 
 def get_intersection(line1, line2):
-    print(line1, line2)
     if line1 is None or line2 is None:
         return None
     m1, b1 = line1
@@ -65,8 +57,8 @@ def lines_to_filtered_pts(hough_lines, min_lane_slope=0.5, max_lane_slope=1.5):
         return [], []
     left_pts, right_pts = filter_lines_to_points(hough_lines, min_lane_slope, max_lane_slope)
 
-    left_filtered_pts = filter_points(left_pts, 'left') # This is different between the two
-    right_filtered_pts = filter_points(right_pts, 'right') # This is different between the two
+    left_filtered_pts = filter_points(left_pts, 'left')
+    right_filtered_pts = filter_points(right_pts, 'right')
     
     return left_filtered_pts, right_filtered_pts
 
