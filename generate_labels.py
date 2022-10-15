@@ -11,12 +11,12 @@ params = {
 'min_lane_slope':  0.5,
 'max_lane_slope':  1.5,
 'momentum':  0.95,
-'scaling_constant':  10,
+'scaling_constant':  5,
 'canny_low_threshold':  50,
-'canny_high_threshold':  100,
+'canny_high_threshold':  125,
 'distance_threshold':  100,
 'hough': { 'rho': 1,  'theta': 15*np.pi/180,  'threshold': 5,  'min_line_length': 5,  'max_line_gap': 5 },
-'roi':  { 'x_bottom_offset': 50, 'x_top_offset': 300, 'y_bottom_offset': 150, 'y_top_offset': -10 },
+'roi':  { 'x_bottom_offset': 50, 'x_top_offset': 300, 'y_bottom_offset': 150, 'y_top_offset': -20 },
 }
 
 def image_to_vp(image, prev_left_lanes, prev_right_lanes, params=params, debug=False):
@@ -56,5 +56,3 @@ def generate_and_write_labels(filename, frames, params=params):
           
           f.write(f'{pitch_calib} {yaw_calib}\n')
       f.close()
-
-# 
