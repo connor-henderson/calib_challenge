@@ -16,19 +16,20 @@ params = {
 'canny_low_threshold':  50,
 'canny_high_threshold':  100,
 'hough': { 'rho': 1,  'theta': 15*np.pi/180,  'threshold': 5,  'min_line_length': 5,  'max_line_gap': 5 },
-'roi':  { 'x_bottom_offset': 50, 'x_top_offset': 300, 'y_bottom_offset': 150, 'y_top_offset': 10 },
+'roi':  { 'x_bottom_offset': 50, 'x_top_offset': 300, 'y_bottom_offset': 150, 'y_top_offset': -10 },
 }
+# def get_hough_lines_p_test(img, rho=2, theta=31*np.pi/180, threshold=10, min_line_length=5, max_line_gap=20):
+#     return cv2.HoughLinesP(img, rho, theta, threshold, np.array([]), min_line_length, max_line_gap)
 
-def get_hough_lines_p_test(img, rho=2, theta=31*np.pi/180, threshold=10, min_line_length=5, max_line_gap=20):
-    return cv2.HoughLinesP(img, rho, theta, threshold, np.array([]), min_line_length, max_line_gap)
+
 
 def image_to_vp(image, prev_left_lanes, prev_right_lanes, params=params, debug=False):
     # process the image from color -> grayscale -> canny -> masked by ROI -> probabilistic hough lines
     copy_img = np.copy(image)
     gray_img = cv2.cvtColor(copy_img, cv2.COLOR_BGR2GRAY)
     canny = cv2.Canny(copy_img, params['canny_low_threshold'], params['canny_high_threshold'])
-    masked_edges = get_roi_from_img(canny, roi=params['roi'])
-    hough_lines = get_hough_lines_p_test(masked_edges)
+    masked_edges = get_roi_from_img(canny, **params['roi'])
+    hough_lines = get_hough_lines_p(masked_edges, **params['hough'])
     
     # take the hough lines, filter them by slope and intercept into a set of acceptable points
     left_pts, right_pts = lines_to_filtered_pts(hough_lines, params['min_lane_slope'], params['max_lane_slope'])

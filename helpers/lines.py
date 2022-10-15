@@ -1,6 +1,5 @@
 import numpy as np
 from helpers.lanes import has_lane_slope
-import cv2
 
 def filter_lines_to_points(hough_lines, min_lane_slope, max_lane_slope):
     left_pts = []
@@ -8,22 +7,14 @@ def filter_lines_to_points(hough_lines, min_lane_slope, max_lane_slope):
     for line in hough_lines:
         x1, y1, x2, y2 = line.reshape(4)
         slope = (y2-y1)/((x2-x1) + 1e-15) # avoid division by zero
-        intercept = y1 - (slope * x1)
-
-        left_intercept_prop = intercept > 800 and intercept < 1300
-        right_intercept_prop = intercept > -50 and intercept < 300
         
-        left_slope_prop = slope < -min_lane_slope and slope > -max_lane_slope
-        right_slope_prop = slope > min_lane_slope and slope < max_lane_slope
-        
-        if left_slope_prop and left_slope_prop:
+        if has_lane_slope('left', slope, min_lane_slope, max_lane_slope):
             left_pts.append((x1, y1))
             left_pts.append((x2, y2))
-        elif right_slope_prop and right_intercept_prop:
+        elif has_lane_slope('right', slope, min_lane_slope, max_lane_slope):
             right_pts.append((x1, y1))
             right_pts.append((x2, y2))
     return left_pts, right_pts
-
 
 def left_lane_min_max_y(x, y):
     min_y = -x + 864
@@ -45,7 +36,7 @@ def filter_points(pts, lane):
 
 def get_intersection(line1, line2):
     if line1 is None or line2 is None:
-        return None
+        raise RuntimeError('line1 or line2 is None')
     m1, b1 = line1
     m2, b2 = line2
     xi = (b1-b2) / ((m2-m1) + 1e-15) # avoid division by zero
