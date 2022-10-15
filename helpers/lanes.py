@@ -6,18 +6,18 @@ def has_lane_slope(side, slope, min_lane_slope, max_lane_slope):
         return slope < -min_lane_slope and slope > -max_lane_slope
     return slope > min_lane_slope and slope < max_lane_slope
 
-def get_pts_close_to_std_line(pts, slope, intercept):
+def get_pts_close_to_std_line(pts, slope, intercept, distance_from_std_line):
     new_pts = []
     for x, y in pts:
-        if abs(y - (slope*x + intercept)) < 100: # this could be a param, just pass it as a prop
+        if abs(y - (slope*x + intercept)) < distance_from_std_line:
             new_pts.append((x, y))
     return new_pts
 
-def pts_to_lane(pts, side, standard_lane, min_lane_slope, max_lane_slope):
+def pts_to_lane(pts, side, standard_lane, min_lane_slope, max_lane_slope, distance_from_std_line=100):
     if len(pts) < 3:
         return standard_lane
 
-    pts_close_to_line = get_pts_close_to_std_line(pts, standard_lane[0], standard_lane[1])
+    pts_close_to_line = get_pts_close_to_std_line(pts, standard_lane[0], standard_lane[1], distance_from_std_line)
     x = [pt[0] for pt in pts_close_to_line]
     y = [pt[1] for pt in pts_close_to_line]
     
