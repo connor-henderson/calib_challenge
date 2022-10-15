@@ -22,9 +22,9 @@ def left_lane_min_max_y(x, y):
     return min_y <= y <= max_y 
 
 def right_lane_min_max_y(x, y):
-    min_y = x - 300
-    max_y = x
-    return min_y <= x <= max_y # Should be y if you are going to make it work right
+    min_y = x - 350
+    max_y = x + 50
+    return min_y <= y <= max_y
 
 def filter_points(pts, lane):
     new_pts = []
